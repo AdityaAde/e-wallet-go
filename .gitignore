@@ -1,1 +1,33 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Output dari 'go build'
+/bin/
+/build/
+/dist/
+
+# Dependency directories (jika menggunakan vendor)
+vendor/
+
+# File konfigurasi pribadi atau sensitif
 .env
+.env.*  # Misal: .env.local, .env.prod
+
+# Logs
+*.log
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistem OS
+.DS_Store
+Thumbs.db
