@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"log"
 
 	"adityaad.id/belajar-auth/domain"
 	"github.com/doug-martin/goqu/v9"
@@ -34,8 +33,6 @@ func (a accountRepository) FindByAccountNumber(ctx context.Context, accNumber st
 	dataset := a.db.From("accounts").Where(goqu.Ex{
 		"account_number": accNumber,
 	})
-
-	log.Println("find by account number")
 
 	_, err = dataset.ScanStructContext(ctx, &account)
 	return
