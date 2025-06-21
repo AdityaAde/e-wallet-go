@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"adityaad.id/belajar-auth/domain"
 	"adityaad.id/belajar-auth/dto"
@@ -11,19 +12,25 @@ import (
 )
 
 type topupService struct {
-	notificationService domain.NotificationService
-	topupRepository     domain.TopupRepository
-	midtransService     domain.MidtransService
-	accountRepository   domain.AccountRepository
+	notificationService   domain.NotificationService
+	topupRepository       domain.TopupRepository
+	midtransService       domain.MidtransService
+	accountRepository     domain.AccountRepository
+	transactionRepository domain.TransactionRepository
 }
 
-func NewTopupService(notificationService domain.NotificationService, topupRepository domain.TopupRepository, midtransService domain.MidtransService,
-	accountRepository domain.AccountRepository) domain.TopupService {
+func NewTopupService(notificationService domain.NotificationService,
+	topupRepository domain.TopupRepository,
+	midtransService domain.MidtransService,
+	accountRepository domain.AccountRepository,
+	transactionRepository domain.TransactionRepository,
+) domain.TopupService {
 	return &topupService{
-		notificationService: notificationService,
-		topupRepository:     topupRepository,
-		midtransService:     midtransService,
-		accountRepository:   accountRepository,
+		notificationService:   notificationService,
+		topupRepository:       topupRepository,
+		midtransService:       midtransService,
+		accountRepository:     accountRepository,
+		transactionRepository: transactionRepository,
 	}
 }
 
@@ -71,6 +78,19 @@ func (t topupService) ConfirmedTopup(ctx context.Context, id string) error {
 
 	if account == (domain.Account{}) {
 		return errors.New("account not found")
+	}
+
+	err = t.transactionRepository.Insert(ctx, &domain.Transaction{
+		AccountID:           account.ID,
+		SofNumber:           "00",
+		DofNumber:           account.AccountNumber,
+		TransactionType:     "C",
+		Amount:              topup.Amount,
+		TransactionDateTime: time.Now(),
+	})
+
+	if err != nil {
+		return err
 	}
 
 	account.Balance += topup.Amount

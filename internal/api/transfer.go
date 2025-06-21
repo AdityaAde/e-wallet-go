@@ -9,11 +9,17 @@ import (
 
 type transferApi struct {
 	transactionService domain.TransactionService
+	factorService      domain.FactorService
 }
 
-func NewTransfer(app *fiber.App, transactionService domain.TransactionService, authMid fiber.Handler) {
+func NewTransfer(app *fiber.App,
+	transactionService domain.TransactionService,
+	authMid fiber.Handler,
+	factorService domain.FactorService,
+) {
 	h := &transferApi{
 		transactionService: transactionService,
+		factorService:      factorService,
 	}
 
 	app.Post("transfer/inquiry", authMid, h.TransferInquiry)
@@ -47,6 +53,17 @@ func (t transferApi) TransferExecute(ctx *fiber.Ctx) error {
 	if err := ctx.BodyParser(&req); err != nil {
 		return ctx.Status(400).JSON(dto.Response{
 			Message: "Invalid body",
+		})
+	}
+
+	user := ctx.Locals("x-user").(dto.UserData)
+
+	if err := t.factorService.ValidatePIN(ctx.Context(), dto.ValidatePinReq{
+		PIN:    req.PIN,
+		UserID: user.ID,
+	}); err != nil {
+		return ctx.Status(util.GetHttpStatus(err)).JSON(dto.Response{
+			Message: err.Error(),
 		})
 	}
 
